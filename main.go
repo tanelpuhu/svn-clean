@@ -11,9 +11,13 @@ import (
 )
 
 // VERSION ...
-const VERSION string = "0.0.2"
+const VERSION string = "0.0.3"
 
-var flagVersion bool
+var (
+	flagVersion     bool
+	sizeAfterTotal  int64
+	sizeBeforeTotal int64
+)
 
 func fileExists(path string) bool {
 	if _, err := os.Stat(path); err != nil {
@@ -75,9 +79,11 @@ func fmtInt(size int64) string {
 
 func sizeAndRunGC(path string) {
 	sizeBefore := getDirSize(path)
+	sizeBeforeTotal += sizeBefore
 	fmt.Printf("%-64s %11s -> ", path, fmtInt(sizeBefore))
 	elapsed := runGC(path)
 	sizeAfter := getDirSize(path)
+	sizeAfterTotal += sizeAfter
 	fmt.Printf("%-14s %10s %8s\n",
 		fmtInt(sizeAfter),
 		fmt.Sprintf("%.2f%%", 100*float32(sizeAfter)/float32(sizeBefore)),
@@ -129,9 +135,13 @@ func main() {
 	for _, arg := range args {
 		filepath.Walk(arg, walkCallback)
 	}
-	fmt.Printf("%-105s %8s\n",
-		"",
-		fmt.Sprintf("%s", time.Now().Sub(start).Truncate(time.Millisecond).String()),
-	)
-
+	if sizeAfterTotal > 0 && sizeBeforeTotal > 0 {
+		fmt.Printf("%-64s %11s -> %-14s %10s %8s\n",
+			"",
+			fmtInt(sizeBeforeTotal),
+			fmtInt(sizeAfterTotal),
+			fmt.Sprintf("%.2f%%", 100*float32(sizeAfterTotal)/float32(sizeBeforeTotal)),
+			fmt.Sprintf("%s", time.Now().Sub(start).Truncate(time.Millisecond).String()),
+		)
+	}
 }
