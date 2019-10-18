@@ -14,7 +14,9 @@ import (
 const VERSION string = "0.0.3"
 
 var (
-	flagVersion     bool
+	flags struct {
+		version bool
+	}
 	sizeAfterTotal  int64
 	sizeBeforeTotal int64
 )
@@ -115,13 +117,10 @@ func checkExec() {
 	}
 }
 
-func init() {
-	flag.BoolVar(&flagVersion, "V", false, "Print version")
-	flag.Parse()
-}
-
 func main() {
-	if flagVersion {
+	flag.BoolVar(&flags.version, "V", false, "Print version")
+	flag.Parse()
+	if flags.version {
 		fmt.Printf("svn-clean %v\n", VERSION)
 		return
 	}
